@@ -28,9 +28,9 @@ class Diablo3 {
     private $item_img_sizes      = array('small', 'large');
     private $skill_img_url;
     private $skill_img_sizes     = array('21', '42', '64');
-    private $item_save_loc       = '/Diablo-3-API-PHP/img/items/';   // Relative to DOCUMENT_ROOT
-    private $skills_save_loc     = '/Diablo-3-API-PHP/img/skills/';  // Relative to DOCUMENT_ROOT
-    private $paperdolls_save_loc = '/Diablo-3-API-PHP/img/paperdolls/';  // Relative to DOCUMENT_ROOT
+    private $item_save_loc       = '/img/items/';   // Relative to DOCUMENT_ROOT
+    private $skills_save_loc     = '/img/skills/';  // Relative to DOCUMENT_ROOT
+    private $paperdolls_save_loc = '/img/paperdolls/';  // Relative to DOCUMENT_ROOT
     private $skill_url;
     private $paperdoll_url;
     private $genders             = array('male', 'female');
@@ -80,6 +80,7 @@ class Diablo3 {
         $this->follower_url  = 'http://'.$server.$this->host.'/api/d3/data/follower/';
         $this->artisan_url   = 'http://'.$server.$this->host.'/api/d3/data/artisan/';
         $this->item_img_url  = 'http://'.$server.$this->media_host.'/d3/icons/items/';
+        // http://eu.media.blizzard.com/d3/icons/items
         $this->skill_img_url = 'http://'.$server.$this->media_host.'/d3/icons/skills/';
         $this->skill_url     = 'http://'.$server.$this->host.'/d3/'.substr($locale, 0, -3).'/tooltip/';
         $this->paperdoll_url = 'http://'.$server.$this->host.'/d3/static/images/profile/hero/paperdoll/';
@@ -132,6 +133,8 @@ class Diablo3 {
             return false;
         }
 
+        // error_log('Save Path: '.$real_item_path.$size.$icon.$ext);
+        // 
         if(!file_exists($real_item_path.$size.$icon.$ext)) {
             if(is_dir($real_item_path.$size) && is_writable($real_item_path.$size)) {
                 if(!$this->cURLcheckBasics()) {
@@ -253,6 +256,30 @@ class Diablo3 {
     }
 
     /**
+     * getAllItemImages
+     * Gets all the item images from a hero ID. If no size is passed both will be processed
+     * 
+     * @param  int    $heroeID [description]
+     * @param  string $size    [description]
+     * 
+     */
+    public function getAllItemImages($heroeID, $size = null)
+    {
+        $hero_data = $this->getHero($heroeID);
+        foreach ($hero_data['items'] as $key) {
+            if ($size == null)
+            {
+                $item_image_small = $this->getItemImage($key['icon'], 'small');
+                $item_image_large = $this->getItemImage($key['icon'], 'large');
+            }
+            else
+            {
+                $item_image = $this->getItemImage($key['icon'], $size);
+            }   
+        }
+    }
+
+    /**
      * getItemImage
      * Item image
      *
@@ -269,6 +296,48 @@ class Diablo3 {
             return $data;
         } else {
             return 'No Data Return';
+        }
+    }
+
+
+    /**
+     * getAllSkillImages
+     * Get all the skill images from a heroe ID
+     * 
+     * @param  int    $heroeID The heroe id
+     * @param  string $size    The size : 64, 42, 21
+     * @return string          Error message if no valid size is sent
+     * 
+     */
+    public function getAllSkillImages($heroeID, $size = null)
+    {
+        $hero_data = $this->getHero($heroeID);
+
+        foreach ($hero_data['skills'] as $key) {
+            foreach ($key as $key2) {
+                $skillname = $key2['skill']['icon'];
+                switch ($size) {
+                    case '64':
+                        $this->getSkillImage($skillname, '64');
+                        break;
+                    case '41':
+                        $this->getSkillImage($skillname, '42');
+                        break;
+                    case '21':
+                        $this->getSkillImage($skillname, '21');
+                        break;
+                    case null:
+                        $this->getSkillImage($skillname, '64');
+                        $this->getSkillImage($skillname, '42');
+                        $this->getSkillImage($skillname, '21');
+                        break;
+
+                    default:
+                        error_log("Not a correct image size.Choose between 64,42,21.");
+                        return "Not a correct image size. Choose between 64,42,21.";
+                        break;
+                }
+            }
         }
     }
 
