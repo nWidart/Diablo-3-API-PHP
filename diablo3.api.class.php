@@ -313,10 +313,15 @@ class Diablo3 {
     {
         $hero_data = $this->getHero($heroeID);
 
-        foreach ($hero_data['skills'] as $key) {
-            foreach ($key as $key2) {
-                $skillname = $key2['skill']['icon'];
-                switch ($size) {
+        foreach ($hero_data['skills']['active'] as $skills)
+        {
+            if (isset($skills['skill']['icon'])) 
+            {
+                $skillname = $skills['skill']['icon'];
+                
+                // Checking the size
+                switch ($size)
+                {
                     case '64':
                         $this->getSkillImage($skillname, '64');
                         break;
@@ -331,7 +336,6 @@ class Diablo3 {
                         $this->getSkillImage($skillname, '42');
                         $this->getSkillImage($skillname, '21');
                         break;
-
                     default:
                         error_log("Not a correct image size.Choose between 64,42,21.");
                         return "Not a correct image size. Choose between 64,42,21.";
